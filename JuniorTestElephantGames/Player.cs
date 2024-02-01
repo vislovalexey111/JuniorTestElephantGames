@@ -11,21 +11,27 @@
 
             _cellSign = (CellSign)playerNumber;
             _name = "Player " + playerNumber + " (Player) - " + _cellSign;
+
+            if (!Enum.IsDefined(_cellSign))
+                Utils.LogErrorExit("Invalid Player " + number);
         }
 
+        #region IPlayer Interface
         public string Name => _name;
         public CellSign Sign => _cellSign;
 
-        public Cell Move(Grid grid)
+        Cell IPlayer.Move(Grid grid)
         {
             PlayerInput("Enter cell coordinates in format (x y) without paranthases (first cell = 1 1)", out int x, out int y);
 
-            while (x < 0 || y < 0 || x >= grid.Size || y >= grid.Size || grid.Cells[x, y].Sign != CellSign._)
+            while ((x < 0) || (y < 0) || (x >= grid.Size) || (y >= grid.Size) || !grid.IsCellFree(x, y))
                 PlayerInput("Wrong, please, enter cell coordinates again!", out x, out y);
 
             return new(x, y, Sign);
         }
-        
+        #endregion
+
+        #region Helpers
         private void PlayerInput(string message, out int x, out int y)
         {
             Console.Write(message + "\n> ");
@@ -42,5 +48,6 @@
             if (result.Length == 2 && int.TryParse(result[0], out x) && int.TryParse(result[1], out y))
                 --x; --y;
         }
+        #endregion
     }
 }

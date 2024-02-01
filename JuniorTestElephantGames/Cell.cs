@@ -11,26 +11,35 @@
     {
         private int _x;
         private int _y;
+        private CellSign _sign;
 
-        public CellSign Sign;
+        #region Properties
+        public bool IsFree => Sign == CellSign._;
+
+        public CellSign Sign
+        {
+            get => _sign;
+            set { _sign = Enum.IsDefined(value) ? value : CellSign._; }
+        }
+
+        public int X
+        {
+            get => _x;
+            private set { _x = (value < 0) ? 0 : value; }
+        }
+
+        public int Y
+        {
+            get => _y;
+            private set { _y = (value < 0) ? 0 : value; }
+        }
+        #endregion
 
         public Cell(int x = 0, int y = 0, CellSign sign = CellSign._)
         {
             X = x;
             Y = y;
             Sign = sign;
-        }
-
-        public int X
-        {
-            get { return _x; }
-            private set { _x = (value < 0) ? 0 : value; }
-        }
-
-        public int Y
-        {
-            get { return _y; }
-            private set { _y = (value < 0) ? 0 : value; }
         }
     }
 }

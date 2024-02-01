@@ -1,30 +1,35 @@
-﻿using System.Xml.Linq;
-
-namespace JuniorTestElephantGames
+﻿namespace JuniorTestElephantGames
 {
     public sealed class Cpu : IPlayer
     {
-        private readonly CellSign _cellSign;
-        private string _name;
+        private readonly CellSign _sign;
+        private readonly CellSign[] _opponents;
+        private readonly string _name;
 
         public Cpu(int number)
         {
             int playerNumber = ((number < 0) ? 0 : number) + 1;
-
-            _cellSign = (CellSign)playerNumber;
+            _sign = (CellSign)playerNumber;
             _name = "Player " + playerNumber + " (CPU)";
+            _opponents = Enum.GetValues<CellSign>().Where(sign => (sign != CellSign._) && (sign != Sign)).ToArray();
+
+            if (!Enum.IsDefined(_sign))
+                Utils.LogErrorExit("Invalid Enemy " + number);
         }
 
+        #region IPlayer Interface
         public string Name => _name;
-        public CellSign Sign => _cellSign;
+        public CellSign Sign => _sign;
 
-        public Cell Move(Grid grid)
+        Cell IPlayer.Move(Grid grid)
         {
             Cell cell = AICellSelector(grid);
 
             return new(cell.X, cell.Y, Sign);
         }
+        #endregion
 
+        #region Helpers
         private Cell AICellSelector(Grid grid)
         {
             int[] bestRow = new int[2] { 0, grid.Size };
@@ -41,7 +46,7 @@ namespace JuniorTestElephantGames
 
                 for (int j = 0; j < grid.Size; j++)
                 {
-                    if (grid.Cells[j, i].Sign == CellSign._)
+                    if (grid.IsCellFree(j, i))
                     {
                         ++rowCounter;
 
@@ -49,7 +54,7 @@ namespace JuniorTestElephantGames
                             return grid.Cells[j, i];
                     }
 
-                    if (grid.Cells[i, j].Sign == CellSign._)
+                    if (grid.IsCellFree(i, j))
                         ++columnCounter;
                 }
 
@@ -69,26 +74,24 @@ namespace JuniorTestElephantGames
             // If we can't win in this move - searching for the best solution
             int center = grid.Size / 2;
 
-            if (grid.Cells[center, center].Sign == CellSign._)
+            if (grid.IsCellFree(center, center))
                 return grid.Cells[center, center];
             else if (bestRow[1] < bestColumn[1])
-                return (from Cell cell in grid.Cells where cell.Y == bestRow[0] && cell.Sign == CellSign._ select cell).ToArray()[0];
+                return (from Cell cell in grid.Cells where (cell.Y == bestRow[0]) && cell.IsFree select cell).ToArray()[0];
             else
-                return (from Cell cell in grid.Cells where cell.X == bestColumn[0] && cell.Sign == CellSign._ select cell).ToArray()[0];
+                return (from Cell cell in grid.Cells where (cell.X == bestColumn[0]) && cell.IsFree select cell).ToArray()[0];
         }
 
         private bool CanAnotherPlayerWin(Grid grid, Cell cell)
         {
             Cell cellChecker = new(cell.X, cell.Y);
-            int count = Enum.GetNames(typeof(CellSign)).Length; // getting all possible players
 
-            //Startig with 1 because we do not include '_' sign
-            for (int i = 1; i < count; i++)
+            foreach (CellSign opponent in _opponents)
             {
-                ++cellChecker.Sign;
+                cellChecker.Sign = opponent;
 
-                if (cellChecker.Sign != Sign && IsPredictedWinner(grid, cellChecker))
-                        return true;
+                if (IsPredictedWinner(grid, cellChecker))
+                    return true;
             }
 
             return false;
@@ -106,5 +109,6 @@ namespace JuniorTestElephantGames
             grid.Cells[cell.X, cell.Y].Sign = CellSign._;
             return result;
         }
+        #endregion
     }
 }
