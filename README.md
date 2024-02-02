@@ -1,6 +1,6 @@
-Test project for Junior Game Developer from Elephant Games
+Test project for Junior Game Developer from Elephant Games.
 
-Game: Tic Tac Toe
+Game: Tic Tac Toe.
 Programming Langueage: any (lua is prefered)
 
 Configurable parameters:
